@@ -1,0 +1,2 @@
+use sales;
+show tables;
