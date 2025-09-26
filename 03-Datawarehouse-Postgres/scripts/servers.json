@@ -1,0 +1,16 @@
+{
+    "Servers": {
+        "1": {
+            "Name": "Postgres in Docker",
+            "Group": "Server Group 1",
+            "Port": 5432,
+            "Username": "postgres",
+            "Host": "172.30.0.13",
+            "MaintenanceDB": "postgres",
+            "ConnectionParameters": {
+                "sslmode": "prefer",
+                "connect_timeout": 10
+            }
+        }
+    }
+}
