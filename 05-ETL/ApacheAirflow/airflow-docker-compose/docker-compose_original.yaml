@@ -1,5 +1,49 @@
-# *****************************************
-# Apache Airflow
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+#
+
+# Basic Airflow cluster configuration for CeleryExecutor with Redis and PostgreSQL.
+#
+# WARNING: This configuration is for local development. Do not use it in a production deployment.
+#
+# This configuration supports basic configuration using environment variables or an .env file
+# The following variables are supported:
+#
+# AIRFLOW_IMAGE_NAME           - Docker image name used to run Airflow.
+#                                Default: apache/airflow:3.0.1
+# AIRFLOW_UID                  - User ID in Airflow containers
+#                                Default: 50000
+# AIRFLOW_PROJ_DIR             - Base path to which all the files will be volumed.
+#                                Default: .
+# Those configurations are useful mostly in case of standalone testing/running Airflow in test/try-out mode
+#
+# _AIRFLOW_WWW_USER_USERNAME   - Username for the administrator account (if requested).
+#                                Default: airflow
+# _AIRFLOW_WWW_USER_PASSWORD   - Password for the administrator account (if requested).
+#                                Default: airflow
+# _PIP_ADDITIONAL_REQUIREMENTS - Additional PIP requirements to add when starting all containers.
+#                                Use this option ONLY for quick checks. Installing requirements at container
+#                                startup is done EVERY TIME the service is started.
+#                                A better way is to build a custom image or extend the official image
+#                                as described in https://airflow.apache.org/docs/docker-stack/build.html.
+#                                Default: ''
+#
+# Feel free to modify this file to suit your needs.
+---
 x-airflow-common:
   &airflow-common
   # In order to add custom dependencies or upgrade provider distributions you can use your extended image.
@@ -41,134 +85,28 @@ x-airflow-common:
     postgres:
       condition: service_healthy
 
-# *****************************************
-# All other Containers
 services:
-
-#  mysql:
-#    image: mysql:8.0.43
-#    restart: always
-#    container_name: mysql
-#    environment:
-#      MYSQL_DATABASE: sales
-#      MYSQL_USER: user
-#      MYSQL_PASSWORD: password
-#      MYSQL_ROOT_PASSWORD: rootpassword
-#    volumes:
-#      - ./data/mysql_database:/var/lib/mysql
-#      - ./data/mysql_rootfolder:/root/data
-#    ports:
-#      - "3306:3306"
-#    networks:
-#      capstone-net:
-#        ipv4_address: 172.30.0.10
-#
-#  phpmyadmin:
-#    image: phpmyadmin:5.0
-#    container_name: phpmyadmin
-#    restart: always
-#    ports:
-#      - "8082:80"
-#    environment:
-#      - PMA_ARBITRARY=1
-#      - PMA_HOST=172.30.0.10
-#      - PMA_PORT=3306
-#      - PMA_USER=root
-#      - PMA_PASSWORD=rootpassword
-#    networks:
-#      capstone-net:
-#        ipv4_address: 172.30.0.11
-
-#  mongo:
-#    image: mongo:5.0
-#    restart: unless-stopped
-#    container_name: mongo
-#    environment:
-#      MONGO_INITDB_DATABASE: catalog
-#      MONGO_INITDB_ROOT_USERNAME: admin
-#      MONGO_INITDB_ROOT_PASSWORD: mongoadmin
-#    volumes:
-#      - ./data/mongo_database:/data/db:rw
-#      - ./02-Query-data-in-NoSQL-Databases/mongo_start_scripts/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
-#      - ./data/mongo_rootfolder:/root/data:rw
-#    ports:
-#      - "27017:27017"
-#    networks:
-#      capstone-net:
-#        ipv4_address: 172.30.0.12
-
-  postgres_dw:
-    image: postgres:18.0
-    restart: always
-    container_name: postgres_dw
-    shm_size: 128mb
-    environment:
-      POSTGRES_USER: "postgres"
-      POSTGRES_PASSWORD: "postgres"
-      POSTGRES_DB: "softcart"
-    volumes:
-      - ./data/postgres_database:/var/lib/postgresql:rw
-      - ./data/postgres_rootfolder:/root/data:rw
-    ports:
-      - '5432:5432'
-    mem_reservation: 128M
-    networks:
-      capstone-net:
-        ipv4_address: 172.30.0.13
-#
-#  pgadmin:
-#    image: dpage/pgadmin4
-#    container_name: pgadmin
-#    restart: always
-#    ports:
-#      - "8087:80"
-#    depends_on:
-#      - postgres
-#    volumes:
-#      - ./03-Datawarehouse-Postgres/scripts/servers.json:/pgadmin4/servers.json:rw
-#    environment:
-#      PGADMIN_DEFAULT_EMAIL: "admin@example.com"
-#      PGADMIN_DEFAULT_PASSWORD: "postgres"
-#      PGADMIN_LISTEN_ADDRESS: 0.0.0.0
-#      PGADMIN_LISTEN_PORT: 80
-#      POSTGRES_USER: "postgres"
-#      POSTGRES_PASSWORD: "postgres"
-#      POSTGRES_DATABASE: "softcart"
-#    networks:
-#      capstone-net:
-#        ipv4_address: 172.30.0.14
-
-
-# *****************************************
-# Apache Airflow Containers
   postgres:
-    image: postgres:18.0
-    container_name: postgres
+    image: postgres:13
     environment:
       POSTGRES_USER: airflow
       POSTGRES_PASSWORD: airflow
       POSTGRES_DB: airflow
     volumes:
-      - ./data/airflow_database:/var/lib/postgresql:rw
+      - postgres-db-volume:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "airflow"]
       interval: 10s
       retries: 5
       start_period: 5s
     restart: always
-    networks:
-      capstone-net:
-        ipv4_address: 172.30.0.100
 
   redis:
     # Redis is limited to 7.2-bookworm due to licencing change
     # https://redis.io/blog/redis-adopts-dual-source-available-licensing/
     image: redis:7.2-bookworm
-    container_name: redis
     expose:
       - 6379
-    volumes:
-      - ./data/airflow_redis_database:/date:rw
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -176,15 +114,10 @@ services:
       retries: 50
       start_period: 30s
     restart: always
-    networks:
-      capstone-net:
-        ipv4_address: 172.30.0.101
-
 
   airflow-apiserver:
     <<: *airflow-common
     command: api-server
-    container_name: airflow_apiserver
     ports:
       - "8080:8080"
     healthcheck:
@@ -198,14 +131,10 @@ services:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
-    networks:
-      capstone-net:
-        ipv4_address: 172.30.0.102
 
   airflow-scheduler:
     <<: *airflow-common
     command: scheduler
-    container_name: airflow_scheduler
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8974/health"]
       interval: 30s
@@ -217,14 +146,10 @@ services:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
-    networks:
-      capstone-net:
-        ipv4_address: 172.30.0.103
 
   airflow-dag-processor:
     <<: *airflow-common
     command: dag-processor
-    container_name: airflow_dag_processor
     healthcheck:
       test: ["CMD-SHELL", 'airflow jobs check --job-type DagProcessorJob --hostname "$${HOSTNAME}"']
       interval: 30s
@@ -236,14 +161,10 @@ services:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
-    networks:
-      capstone-net:
-        ipv4_address: 172.30.0.104
 
   airflow-worker:
     <<: *airflow-common
     command: celery worker
-    container_name: airflow_worker
     healthcheck:
       # yamllint disable rule:line-length
       test:
@@ -265,14 +186,10 @@ services:
         condition: service_healthy
       airflow-init:
         condition: service_completed_successfully
-    networks:
-      capstone-net:
-        ipv4_address: 172.30.0.105
 
   airflow-triggerer:
     <<: *airflow-common
     command: triggerer
-    container_name: airflow_triggerer
     healthcheck:
       test: ["CMD-SHELL", 'airflow jobs check --job-type TriggererJob --hostname "$${HOSTNAME}"']
       interval: 30s
@@ -284,19 +201,15 @@ services:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
-    networks:
-      capstone-net:
-        ipv4_address: 172.30.0.106
 
   airflow-init:
     <<: *airflow-common
     entrypoint: /bin/bash
-    container_name: airflow_init
     # yamllint disable rule:line-length
     command:
       - -c
       - |
-        if [[ -z "$${AIRFLOW_UID}" ]]; then
+        if [[ -z "${AIRFLOW_UID}" ]]; then
           echo
           echo -e "\033[1;33mWARNING!!!: AIRFLOW_UID not set!\e[0m"
           echo "If you are on Linux, you SHOULD follow the instructions below to set "
@@ -361,11 +274,11 @@ services:
         echo
         echo "Change ownership of files in /opt/airflow to ${AIRFLOW_UID}:0"
         echo
-        chown -R "$${AIRFLOW_UID}:0" /opt/airflow/
+        chown -R "${AIRFLOW_UID}:0" /opt/airflow/
         echo
         echo "Change ownership of files in shared volumes to ${AIRFLOW_UID}:0"
         echo
-        chown -v -R "$${AIRFLOW_UID}:0" /opt/airflow/{logs,dags,plugins,config}
+        chown -v -R "${AIRFLOW_UID}:0" /opt/airflow/{logs,dags,plugins,config}
         echo
         echo "Files in shared volumes:"
         echo
@@ -380,15 +293,11 @@ services:
       _AIRFLOW_WWW_USER_PASSWORD: ${_AIRFLOW_WWW_USER_PASSWORD:-airflow}
       _PIP_ADDITIONAL_REQUIREMENTS: ''
     user: "0:0"
-    networks:
-      capstone-net:
-        ipv4_address: 172.30.0.107
 
   airflow-cli:
     <<: *airflow-common
     profiles:
       - debug
-    container_name: airflow_cli
     environment:
       <<: *airflow-common-env
       CONNECTION_CHECK_MAX_COUNT: "0"
@@ -399,9 +308,6 @@ services:
       - airflow
     depends_on:
       <<: *airflow-common-depends-on
-    networks:
-      capstone-net:
-        ipv4_address: 172.30.0.108
 
   # You can enable flower by adding "--profile flower" option e.g. docker-compose --profile flower up
   # or by explicitly targeted on the command line e.g. docker-compose up flower.
@@ -409,7 +315,6 @@ services:
   flower:
     <<: *airflow-common
     command: celery flower
-    container_name: airflow_flower
     profiles:
       - flower
     ports:
@@ -425,11 +330,6 @@ services:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
-    networks:
-      capstone-net:
-        ipv4_address: 172.30.0.109
 
-networks:
-  capstone-net:
-    external: true
-    name: capstone-net
+volumes:
+  postgres-db-volume:

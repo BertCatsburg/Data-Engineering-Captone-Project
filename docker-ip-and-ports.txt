@@ -1,0 +1,32 @@
+IP Addresses in the Docker-Compose network
+and ports on the host
+
+Ports:
+- 3306 - MySQL
+- 8082 - phpmyadmin
+- 27017 - Mongo
+- 5432 - Postgres DataWarehouse
+- 5555 - Airflow Flower
+- 8087 - PgAdmin (On the DataWarehouse)
+- 8080 - Airflow API Server
+
+
+IP Address:
+- 172.30.0.10 - MySQL
+- 172.30.0.11 - phpmyadmin
+- 172.30.0.12 - Mongo
+- 172.30.0.13 - Postgres DataWarehouse
+- 172.30.0.14 - PgAdmin (On the DataWarehouse)
+- 172.30.0.100 - Postgres (Airflow DB)
+- 172.30.0.101 - Redis (for Airflow)
+- 172.30.0.102 - Airflow API Server (Database connection)
+- 172.30.0.103 - Airflow Scheduler
+- 172.30.0.104 - Airflow DAG Processor
+- 172.30.0.105 - Airflow Worker
+- 172.30.0.106 - Airflow Triggerer
+- 172.30.0.107 - Airflow Init
+- 172.30.0.108 - Airflow CLI
+- 172.30.0.109 - Airflow Flower
+
+
+
