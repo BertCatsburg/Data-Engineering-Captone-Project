@@ -1,38 +1,38 @@
 services:
 
-#  mysql:
-#    image: mysql:8.0.43
-#    restart: always
-#    container_name: mysql
-#    environment:
-#      MYSQL_DATABASE: sales
-#      MYSQL_USER: user
-#      MYSQL_PASSWORD: password
-#      MYSQL_ROOT_PASSWORD: rootpassword
-#    volumes:
-#      - ./data/mysql_database:/var/lib/mysql
-#      - ./data/mysql_rootfolder:/root/data
-#    ports:
-#      - "3306:3306"
-#    networks:
-#      capstone-net:
-#        ipv4_address: 172.30.0.10
+  mysql:
+    image: mysql:8.0.43
+    restart: always
+    container_name: mysql
+    environment:
+      MYSQL_DATABASE: sales
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: rootpassword
+    volumes:
+      - ./data/mysql_database:/var/lib/mysql
+      - ./data/mysql_rootfolder:/root/data
+    ports:
+      - "3306:3306"
+    networks:
+      capstone-net:
+        ipv4_address: 172.30.0.10
 
-#  phpmyadmin:
-#    image: phpmyadmin:5.0
-#    container_name: phpmyadmin
-#    restart: always
-#    ports:
-#      - "8080:80"
-#    environment:
-#      - PMA_ARBITRARY=1
-#      - PMA_HOST=172.30.0.10
-#      - PMA_PORT=3306
-#      - PMA_USER=root
-#      - PMA_PASSWORD=rootpassword
-#    networks:
-#      capstone-net:
-#        ipv4_address: 172.30.0.11
+  phpmyadmin:
+    image: phpmyadmin:5.0
+    container_name: phpmyadmin
+    restart: always
+    ports:
+      - "8080:80"
+    environment:
+      - PMA_ARBITRARY=1
+      - PMA_HOST=172.30.0.10
+      - PMA_PORT=3306
+      - PMA_USER=root
+      - PMA_PASSWORD=rootpassword
+    networks:
+      capstone-net:
+        ipv4_address: 172.30.0.11
 
 #  mongo:
 #    image: mongo:5.0
@@ -92,6 +92,8 @@ services:
     networks:
       capstone-net:
         ipv4_address: 172.30.0.14
+
+
 
 networks:
   capstone-net:
